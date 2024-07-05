@@ -225,10 +225,10 @@ public class NativePageTransitions extends CordovaPlugin {
           Bitmap bitmap;
           if ("open".equals(drawerAction)) {
             bitmap = getBitmap();
+            imageView.setImageBitmap(bitmap);
+            bringToFront(imageView);
           } else {
             // TODO Crosswalk compat
-            getView().setDrawingCacheEnabled(true);
-            bitmap = Bitmap.createBitmap(getView().getDrawingCache(), "left".equals(drawerOrigin) ? 0 : drawerNonOverlappingSpace, 0, getView().getWidth()- drawerNonOverlappingSpace, getView().getHeight());
             if ("left".equals(drawerOrigin)) {
               if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                 imageView2.setX(-drawerNonOverlappingSpace / 2);
@@ -238,17 +238,18 @@ public class NativePageTransitions extends CordovaPlugin {
                 imageView2.setX(drawerNonOverlappingSpace / 2);
               }
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
-              bitmap.setHasAlpha(false);
-            }
-            getView().setDrawingCacheEnabled(false);
-          }
-          if ("open".equals(drawerAction)) {
-            imageView.setImageBitmap(bitmap);
-            bringToFront(imageView);
-          } else {
-            imageView2.setImageBitmap(bitmap);
-            bringToFront(imageView2);
+            View view = getView();
+            view.setDrawingCacheEnabled(true);
+            Bitmap cache = view.getDrawingCache();
+            if (cache != null) {
+              bitmap = Bitmap.createBitmap(cache, "left".equals(drawerOrigin) ? 0 : drawerNonOverlappingSpace, 0, getView().getWidth()- drawerNonOverlappingSpace, getView().getHeight());
+              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
+                bitmap.setHasAlpha(false);
+              }
+              imageView2.setImageBitmap(bitmap);
+              bringToFront(imageView2);
+            }            
+            view.setDrawingCacheEnabled(false);
           }
 
           if (href != null && !"null".equals(href)) {
@@ -721,9 +722,12 @@ public class NativePageTransitions extends CordovaPlugin {
     } else {
       View view = getView();
       view.setDrawingCacheEnabled(true);
-      bitmap = Bitmap.createBitmap(view.getDrawingCache());
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
-        bitmap.setHasAlpha(false);
+      Bitmap drawingCache = view.getDrawingCache();
+      if (drawingCache != null) {
+        bitmap = Bitmap.createBitmap(drawingCache);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
+          bitmap.setHasAlpha(false);
+        }
       }
       view.setDrawingCacheEnabled(false);
     }
